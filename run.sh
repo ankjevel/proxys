@@ -7,7 +7,7 @@ PASSWORD=${PASSWORD:-"bord telefon lampa"}
 PASS=$(echo $PASSWORD | openssl passwd -apr1 -stdin)
 PASS_FILE=${PASS_FILE:-"/etc/nginx/pass"}
 # separate with "|"
-PROXYS=${PROXYS:-"url_path;proxy_pass;proxy_redirect;rewrite;"}
+PROXYS=${PROXYS:-"url_path;proxy_pass;proxy_redirect;rewrite;userdefined;"}
 
 generate_pass () {
   echo $USERNAME:$PASS > $PASS_FILE
@@ -21,8 +21,7 @@ create_default_conf () {
 
   echo "server {" > /etc/nginx/conf.d/default.conf
   for item in ${list[*]}; do
-    echo "item: $item"
-    IFS=";"; read -r url_path proxy_pass proxy_redirect rewrite <<< "$item"
+    IFS=";"; read -r url_path proxy_pass proxy_redirect rewrite userdefined <<< "$item"
 
     url_path=${url_path:+/}$url_path$([[ $url_path != / ]] && echo /)
     extra=${proxy_pass:+$( \
@@ -32,6 +31,11 @@ create_default_conf () {
     )}${rewrite:+$( \
       printf "\n    rewrite $rewrite;" \
     )}
+
+    for rule in $userdefined ; do
+      extra=$(printf "$extra\n    $rule;")
+    done
+
     cat <<EOF >> /etc/nginx/conf.d/default.conf
 
   location $url_path {$extra
