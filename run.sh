@@ -6,7 +6,8 @@ USERNAME=${USERNAME:-"super-user"}
 PASSWORD=${PASSWORD:-"bord telefon lampa"}
 PASS=$(echo $PASSWORD | openssl passwd -apr1 -stdin)
 PASS_FILE=${PASS_FILE:-"/etc/nginx/pass"}
-PROXYS="path;proxy_path;proxy_redirect;rewrite;|..."
+# separate with "|"
+PROXYS=${PROXYS:-"url_path;proxy_pass;proxy_redirect;rewrite;"}
 
 generate_pass () {
   echo $USERNAME:$PASS > $PASS_FILE
@@ -49,4 +50,4 @@ EOF
   return 0
 }
 
-generate_pass && create_default_conf $*
+generate_pass && create_default_conf $PROXYS
